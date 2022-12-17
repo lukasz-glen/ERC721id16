@@ -1,19 +1,19 @@
 # ERC721id16
 
-Efficient Implementation of EIP721 and EIP721+Enumerable with tokenId &lt; 2**16.
+Efficient Implementation of EIP721 and EIP721+Enumerable with tokenId &lt; 2\*\*16.
 
 Contracts here are divided according to two distinct purposes.
 They are weakly related.
 One is to look for ERC721 transfers as cheap as possible.
 The other is to lower transfer costs for ERC721+Enumerable.
-The latter assumes that tokenId &lt; 2**16, what allows enumeration to be even cheaper.
+The latter assumes that tokenId &lt; 2\*\*16, what allows enumeration to be even cheaper.
 
 ## ERC721id16
 
 ### id16 concept
 
-Any tokenId is less than 2**16. 
-With this the total supply, a balance of any user, any index in enumeration are less than 2**16.
+Any tokenId is less than 2\*\*16. 
+With this the total supply, a balance of any user, any index in enumeration are less than 2\*\*16.
 So they fit in `uint16`.
 The idea is to put more of such data within one storage slot which is 256 bits.
 
