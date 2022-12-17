@@ -86,7 +86,7 @@ In particular, if there is lazy minting.
 
 There are two implementations, ERC721id16LazyMint and ERC721BatchMint.
 But you can create your own.
-Both implementation assumes that a total supply is given at the constructor.
+Both implementations assume that a total supply is given at the constructor.
 
 ## ERC721 Mini
 
