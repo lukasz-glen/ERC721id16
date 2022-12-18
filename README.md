@@ -90,5 +90,20 @@ Both implementations assume that a total supply is given at the constructor.
 
 ## ERC721 Mini
 
-This is not id16 concept as the name of this repo suggests.
+This is not id16 concept as the name of this repo would suggest. A separate repo could work actually.
+
+### balanceOf() - gas cost
+
+Costly operations for a token transfer are typically as follows.
+- chagne ownership (1 slot update),
+- potentially check an operator allowance (1 slot read),
+- potentially check a single approval (1 slot read),
+- update sender balance (1 slot update or deletion),
+- update receiver balance (1 slot update or creation),
+- delete a single approval (1 slot deletion even if is zero),
+- emit Transfer event - 1k gas.
+
+### balanceOf() - reasoning
+
+The function `balanceOf()` is a part of the standard.
 
