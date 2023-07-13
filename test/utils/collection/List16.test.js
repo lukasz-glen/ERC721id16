@@ -4,7 +4,7 @@ const { expectRevert } = require('@openzeppelin/test-helpers')
 const List16Test = artifacts.require('List16Test');
 
 contract('List16Test', function (deployer) {
-  describe.skip('List16Test', function () {
+  describe('List16Test', function () {
     let list16
 
     beforeEach(async function () {

@@ -15,8 +15,8 @@ contract('ERC721id16Mock', function (accounts) {
     this.token = await ERC721Mock.new(name, symbol);
   });
 
-//  shouldBehaveLikeERC721('ERC721id16', ...accounts);
-//  shouldBehaveLikeERC721Metadata('ERC721id16', name, symbol, ...accounts);
-//  shouldBehaveLikeERC721Enumerable('ERC721id16', ...accounts);
+  shouldBehaveLikeERC721('ERC721id16', ...accounts);
+  shouldBehaveLikeERC721Metadata('ERC721id16', name, symbol, ...accounts);
+  shouldBehaveLikeERC721Enumerable('ERC721id16', ...accounts);
 //  runERC721benchmark(...accounts)
 });

@@ -1,16 +1,19 @@
 # ERC721id16
 
-Efficient Implementation of EIP721 and EIP721+Enumerable with tokenId &lt; 2**16.
+Efficient Implementation of ERC721Enumerable with tokenId &lt; 2**16.
 
-Contracts here are divided according to two distinct purposes.
-They are weakly related.
-One is to look for ERC721 transfers as cheap as possible.
-The other is to lower transfer costs for ERC721+Enumerable.
-The latter assumes that tokenId &lt; 2**16, what allows enumeration to be even cheaper.
+The solution minimize gas cost of REC721 transfers while supporting the enumeration of owners' tokens.
+It is assumed than minting and burning are much less frequent.
+Moreover, minting technic can significantly affect how global enumeration is handled.
+For that reasons, this implementation offers only base `_min()` and `_burn()` functions 
+without implementation of `totalSupply()` and `tokenByIndex()`.
 
-## ERC721id16
+Token ids are less than 2**16. 
+Thanks to that implementation can be very efficient.
+If owners' balances do not exceed several tokens,
+a token transfer cost is comparable to a token transfer in a base ERC721 contract.
 
-### id16 concept
+## List16 concept
 
 Any tokenId is less than 2**16. 
 With this the total supply, a balance of any user, any index in enumeration are less than 2**16.
@@ -20,7 +23,7 @@ The idea is to put more of such data within one storage slot which is 256 bits.
 Enumerable requires to maintain wallets of users that support 
 `tokenOfOwnerByIndex()` and `balanceOf()` functions.
 A user's wallet is a list of owned token ids which are `uint16`.
-And this is its layout.
+And here is its layout.
 
 ```markdown
 |                               slot 1                                     | ... |
@@ -45,7 +48,7 @@ So the structure is
 | user address (160 bits) | token index in user's wallet (16 bits) | other (80 bits) |
 ```
 
-Lets consider a scenario. An owner transfers a token another user. 
+Let's consider a scenario. An owner transfers a token another user. 
 The owner has a few tokens, and the user has a few tokens.
 There are the following storage operations:
 - update the owner's wallet (1 slot update),
@@ -53,7 +56,8 @@ There are the following storage operations:
 - update the token ownership and the token index (1 slot update),
 - update the token index of replaced token (1 slot update), can be required, possibly not.
 
-This is 4*5k gas for storage operations, plus 21k for a transaction, plus 1k for Transfer event plus some gas for other operations.
+This is 4*5k gas for storage operations, plus 21k for a transaction, 
+plus 1k for Transfer event plus some gas for other operations.
 It is 43-44k gas in total what is pretty nice.
 Notice that gas cost may vary significantly depending on a scenario.  
 
@@ -63,7 +67,7 @@ A typical implementation clears `_tokenApprovals` upon a transfer by default.
 We provide a little gas optimisation.
 An approval is not deleted even if it is read.
 Instead, a token's transfer counter is attached to an approval.
-It is set at approving.
+It is set when approving.
 A current token's transfer counter is stored with token's ownership.
 
 ```markdown
@@ -72,7 +76,7 @@ A current token's transfer counter is stored with token's ownership.
 | user address (160 bits) | token index in user's wallet (16 bits) | transfer counter (80 bits) |
 ```
 
-A token's transfer counter is increased at each transfer.
+A token's transfer counter is increased at every transfer.
 It does not cost any additional storage operation since a counter is appended to an ownership slot.
 An approval is valid if its saved counter equals current token's counter.
 
@@ -87,8 +91,4 @@ In particular, if there is lazy minting.
 There are two implementations, ERC721id16LazyMint and ERC721BatchMint.
 But you can create your own.
 Both implementation assumes that a total supply is given at the constructor.
-
-## ERC721 Mini
-
-This is not id16 concept as the name of this repo suggests.
 

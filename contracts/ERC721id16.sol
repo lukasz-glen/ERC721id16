@@ -13,7 +13,7 @@ import "./List16Lib.sol";
  * @dev
  * Gas efficient implementation of ERC721 and ERC721Enumerable.
  *
- * Token ids are limited to uint16 range, it means there can be ~64k nfts.
+ * Token ids are limited to uint16 range, it means there can be ~64k nfts max.
  * The contract is abstract, totalSupply() and tokenByIndex() and not implemented as they may depend on minting.
  *
  * Sources of gas saving:
@@ -21,8 +21,7 @@ import "./List16Lib.sol";
  * - enumeration indexes are appended to _owners
  * - _tokenApprovals are not cleared in _transfer() thanks to tracking transferCounter.
  *
- * It differs from OZ implementation - storage variables are internal and
- * there is no _beforeTokenTransfer() or _afterTokenTransfer().
+ * It differs from OZ implementation - storage variables are internal.
  * And permission checks are moved into _transfer() function.
  * But the order of checks and the revert messages are almost the same.
  */
@@ -126,20 +125,18 @@ abstract contract ERC721id16 is Context, IERC721, IERC721Enumerable {
         }
         address spender = _msgSender();
 
-        // the structure of checkes refers to OZ implementation
+        // the structure of checks refers to OZ implementation
         if (spender != owner) {
             if (!_operatorApprovals[owner][spender]) {
                 require(owning != 0, "ERC721: invalid token ID");
                 // sender == approved && current transferCounter == approved transferCounter
                 require(_tokenApprovals[tokenId] == uint256(bytes32(bytes20(spender))) | transferCounter, "ERC721: caller is not token owner or approved");
-            } else {
-                require(owning != 0, "ERC721: invalid token ID");
             }
-        } else {
-            require(owning != 0, "ERC721: invalid token ID");
         }
         require(owner == from, "ERC721: transfer from incorrect owner");
         require(to != address(0), "ERC721: transfer to the zero address");
+
+        _beforeTokenTransfer(from, to, tokenId);
 
         (uint16 replacedTokenId, uint16 replacedPos) = List16Lib.list16RemovePos(_walletSlotNum(from), enumerationIndex);
         // if the token was the last on the owner's list, then there is not need to change an index of additional token
@@ -158,6 +155,8 @@ abstract contract ERC721id16 is Context, IERC721, IERC721Enumerable {
         _owners[tokenId] = owning;
 
         emit Transfer(from, to, tokenId);
+
+        _afterTokenTransfer(from, to, tokenId);
     }
 
     /**
@@ -209,6 +208,8 @@ abstract contract ERC721id16 is Context, IERC721, IERC721Enumerable {
         // tokenId must meet uint16 range
         require(tokenId <= type(uint16).max, "ERC721: invalid token ID");
 
+        _beforeTokenTransfer(address(0), to, tokenId);
+
         // it is uint16 actually
         uint256 _newEnumerationIndex = List16Lib.list16AddElt(_walletSlotNum(to), uint16(tokenId));
         // + 1 is the initial transferCounter
@@ -217,6 +218,8 @@ abstract contract ERC721id16 is Context, IERC721, IERC721Enumerable {
         }
 
         emit Transfer(address(0), to, tokenId);
+
+        _afterTokenTransfer(address(0), to, tokenId);
     }
 
     /**
@@ -241,6 +244,8 @@ abstract contract ERC721id16 is Context, IERC721, IERC721Enumerable {
 
         require(owning != 0, "ERC721: invalid token ID");
 
+        _beforeTokenTransfer(owner, address(0), tokenId);
+
         (uint16 replacedTokenId, uint16 replacedPos) = List16Lib.list16RemovePos(_walletSlotNum(owner), enumerationIndex);
         if (enumerationIndex != replacedPos) {
             _owners[replacedTokenId] = (_owners[replacedTokenId] & 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFFFFFF) | (uint256(enumerationIndex) << 80);
@@ -250,6 +255,8 @@ abstract contract ERC721id16 is Context, IERC721, IERC721Enumerable {
         delete _owners[tokenId];
 
         emit Transfer(owner, address(0), tokenId);
+
+        _afterTokenTransfer(owner, address(0), tokenId);
     }
 
     /**
@@ -345,6 +352,18 @@ abstract contract ERC721id16 is Context, IERC721, IERC721Enumerable {
             walletSlotNum := keccak256(0, 0x40)
         }
     }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual {}
+
+    function _afterTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal virtual {}
 
     /**
      * @dev See {IERC165-supportsInterface}.
