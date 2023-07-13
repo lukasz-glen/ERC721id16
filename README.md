@@ -1,6 +1,6 @@
 # ERC721id16
 
-Efficient Implementation of ERC721Enumerable with tokenId &lt; 2**16.
+Efficient Implementation of ERC721Enumerable with tokenId &lt; 2\*\*16.
 
 The solution minimize gas cost of REC721 transfers while supporting the enumeration of owners' tokens.
 It is assumed than minting and burning are much less frequent.
@@ -8,15 +8,15 @@ Moreover, minting technic can significantly affect how global enumeration is han
 For that reasons, this implementation offers only base `_min()` and `_burn()` functions 
 without implementation of `totalSupply()` and `tokenByIndex()`.
 
-Token ids are less than 2**16. 
+Token ids are less than 2\*\*16. 
 Thanks to that implementation can be very efficient.
 If owners' balances do not exceed several tokens,
 a token transfer cost is comparable to a token transfer in a base ERC721 contract.
 
 ## List16 concept
 
-Any tokenId is less than 2**16. 
-With this the total supply, a balance of any user, any index in enumeration are less than 2**16.
+Any tokenId is less than 2\*\*16. 
+With this the total supply, a balance of any user, any index in enumeration are less than 2\*\*16.
 So they fit in `uint16`.
 The idea is to put more of such data within one storage slot which is 256 bits.
 
